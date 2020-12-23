@@ -31,6 +31,10 @@ const schema = {
 	key: ''
 }
 
+function isBaseUrl (field) {
+	return field.name === 'baseUrl';
+}
+
 function deepCompare() {
 	var i, l, leftChain, rightChain;
 
@@ -209,7 +213,7 @@ module.exports = {
 					protocol: entry.protocol,
 					url: entry.fields[0].value,
 					key: entry.fields[2].value,
-					seeds: entry.fields[6].value,
+					seeds: 1,
 					id: undefined,
 					appId: entry.id
 				});
@@ -316,96 +320,108 @@ module.exports = {
 		defaults: ["", "", '2000,2010,2020,2030,2035,2040,2045,2050,2060', 1],
 		process: [undefined, undefined, (val) => val.split(',').map(el => parseInt(el))],
 		get: async (url, key, cats) => {
-			const reqUrl = `${url}/api/indexer?apikey=${key}`;
 
-			const response = await axios.get(reqUrl);
-			const indexers = [];
 
-			for (const i in response.data) {
-				const entry = response.data[i];
-				const indexer = Object.assign({}, schema, {
-					title: entry.name,
-					protocol: entry.protocol,
-					url: entry.fields[0].value,
-					id: undefined,
-					seeds: entry.fields[8].value,
-					appId: entry.id
-				});
+			const reqUrl = `${url}/api/v3/indexer?apikey=${key}`;
 
-				let match = indexer.url.match(indexerRegex);
-				if (match) {
-					indexer.id = match.groups.id;
-				}
+                        const response = await axios.get(reqUrl);
+                        const indexers = [];
 
-				indexers.push(indexer);
-			}
+                        for (const i in response.data) {
+                                const entry = response.data[i];
+                                const indexer = Object.assign({}, schema, {
+                                        title: entry.name,
+                                        protocol: entry.protocol,
+                                        url: entry.fields[0].value,
+                                        key: entry.fields[2].value,
+                                        seeds: 1,
+                                        id: undefined,
+                                        appId: entry.id
+                                });
 
-			return indexers;
-		},
+                                let match = indexer.url.match(indexerRegex);
+                                if (match) {
+                                        indexer.id = match.groups.id;
+                                }
+
+                                indexers.push(indexer);
+                        }
+
+                        return indexers;
+                },
 		add: async (url, key, cats, seeds, indexer) => {
-			const reqUrl = `${url}/api/indexer?apikey=${key}`
+			const reqUrl = `${url}/api/v3/indexer?apikey=${key}`
 
-			const body = {
-				enableRss: true,
-				enableSearch: true,
-				supportsRss: true,
-				supportsSearch: true,
-				protocol: indexer.protocol,
-				name: indexer.title,
-				fields: [
-					{ name: 'BaseUrl', value: indexer.url },
-					{ name: 'MultiLanguages', value: '' },
-					{ name: 'ApiKey', value: indexer.key },
-					{ name: 'Categories', value: cats, },
-					{ name: 'AnimeCategories', value: [] },
-					{ name: 'AdditionalParameters', },
-					{ name: 'RemoveYear', value: false, },
-					{ name: 'SearchByTitle', value: false, },
-					{ name: 'MinimumSeeders', value: seeds, },
-					{ name: 'RequiredFlags', value: '' }
-				],
-				implementationName: 'Torznab',
-				implementation: 'Torznab',
-				configContract: 'TorznabSettings'
-			}
+                        const body = {
+                                enableRss: true,
+                                enableAutomaticSearch: true,
+                                enableInteractiveSearch: true,
+                                supportsRss: true,
+                                supportsSearch: true,
+                                protocol: indexer.protocol,
+                                name: indexer.title,
+                                fields: [
+                                        { name: 'baseUrl', value: indexer.url },
+                                        { name: 'apiPath', value: '' },
+					{ name: "multiLanguages", value: [] },
+                                        { name: 'apiKey', value: indexer.key },
+                                        { name: 'categories', value: cats },
+                                        { name: 'animeCategories', value: [] },
+                                        { name: 'additionalParameters' },
+                                        { name: 'minimumSeeders', value: seeds },
+                                        { name: 'seedCriteria.seedRatio' },
+                                        { name: 'seedCriteria.seedTime' },
+                                        { name: 'removeYear', value: false },
+					{ name: 'requiredFlags', value: [] }
+                                ],
+                                implementationName: 'Torznab',
+                                implementation: 'Torznab',
+                                configContract: 'TorznabSettings',
+                                tags: [],
+				priority: 25
+                        }
 
 			try {
 				const resp = await axios.post(reqUrl, body);
 				console.log(`[Radarr] Added ${indexer.id} successfully`);
 			} catch (e) {
 				console.error(`[Radarr] Failed to add ${indexer.id}: ${e.response.data[0] ? e.response.data[0].errorMessage : e}`);
+				console.error(e);
 			}
 		},
 		shouldAdd: (url, key, cats, seeds, el) => el.categories.some(r => cats.includes(r)),
 		update: async (url, key, cats, seeds, current, indexer) => {
-			const reqUrl = `${url}/api/indexer/${current.appId}?apikey=${key}`
+			const reqUrl = `${url}/api/v3/indexer/${current.appId}?apikey=${key}`
 
 			const body = {
-				enableRss: true,
-				enableAutomaticSearch: true,
-				enableInteractiveSearch: true,
-				supportsRss: true,
-				supportsSearch: true,
-				protocol: indexer.protocol,
-				name: indexer.title,
-				id: current.appId,
-				fields: [
-					{ name: 'BaseUrl', value: indexer.url },
-					{ name: 'MultiLanguages', value: '' },
-					{ name: 'ApiKey', value: indexer.key },
-					{ name: 'Categories', value: cats, },
-					{ name: 'AnimeCategories', value: [] },
-					{ name: 'AdditionalParameters', },
-					{ name: 'RemoveYear', value: false, },
-					{ name: 'SearchByTitle', value: false, },
-					{ name: 'MinimumSeeders', value: seeds, },
-					{ name: 'RequiredFlags', value: '' }
-				],
-				implementationName: 'Torznab',
-				implementation: 'Torznab',
-				configContract: 'TorznabSettings',
-				tags: [],
-			}
+                                enableRss: true,
+                                enableAutomaticSearch: true,
+                                enableInteractiveSearch: true,
+                                supportsRss: true,
+                                supportsSearch: true,
+                                protocol: indexer.protocol,
+                                name: indexer.title,
+				id: curent.appId,
+                                fields: [
+                                        { name: 'baseUrl', value: indexer.url },
+                                        { name: 'apiPath', value: '' },
+                                        { name: "multiLanguages", value: [] },
+                                        { name: 'apiKey', value: indexer.key },
+                                        { name: 'categories', value: cats },
+                                        { name: 'animeCategories', value: [] },
+                                        { name: 'additionalParameters' },
+                                        { name: 'minimumSeeders', value: seeds },
+                                        { name: 'seedCriteria.seedRatio' },
+                                        { name: 'seedCriteria.seedTime' },
+                                        { name: 'removeYear', value: false },
+                                        { name: 'requiredFlags', value: [] }
+                                ],
+                                implementationName: 'Torznab',
+                                implementation: 'Torznab',
+                                configContract: 'TorznabSettings',
+                                tags: [],
+                                priority: 25
+                        }
 
 			try {
 				const resp = await axios.put(reqUrl, body);
@@ -416,13 +432,15 @@ module.exports = {
 		},
 		shouldUpdate: (url, key, cats, seeds, current, indexer) => {
 
-			const mask = {categories: undefined, appId: undefined};
+                        const mask = {categories: undefined, appId: undefined};
 
-			const cr = Object.assign({}, current, mask);
-			const ix = Object.assign({}, indexer, {...mask, seeds: seeds});
+                        const cr = Object.assign({}, current, mask);
+                        const ix = Object.assign({}, indexer, {...mask, seeds: seeds});
 
-			return !deepCompare(cr, ix);
-		}		
+                        console.log(cr, ix)
+
+                        return !deepCompare(cr, ix);
+		}
 	},
 	lidarr: {
 		params: ['lidarrurl', 'lidarrkey', 'lidarrcats', 'seeds'],
@@ -437,14 +455,19 @@ module.exports = {
 
 			for (const i in response.data) {
 				const entry = response.data[i];
+				const baseUrlObj = entry.fields.find(isBaseUrl);
+				const baseUrl = (!baseUrlObj) ? '' : baseUrlObj.value;
 				const indexer = Object.assign({}, schema, {
 					title: entry.name,
 					protocol: entry.protocol,
-					url: entry.fields[0].value,
-					seeds: entry.fields[6].value,
+					url: baseUrl,
+					seeds: 1,
 					id: undefined,
 					appId: entry.id
 				});
+
+				if (!indexer.url)
+					indexer.url = '';
 
 				let match = indexer.url.match(indexerRegex);
 				if (match) {
@@ -538,6 +561,128 @@ module.exports = {
 			const ix = Object.assign({}, indexer, {...mask, seeds: seeds});
 
 			return !deepCompare(cr, ix);
-		}		
+		}
 	},
+	readarr: {
+                params: ['readarrurl', 'readarrkey', 'readarrcats', 'seeds'],
+                required: ['readarrurl', 'readarrkey'],
+                defaults: ["", "", '7000,8000,7020,8010', 1],
+                process: [undefined, undefined, (val) => val.split(',').map(el => parseInt(el))],
+                get: async (url, key, cats) => {
+                        const reqUrl = `${url}/api/v1/indexer?apikey=${key}`;
+
+                        const response = await axios.get(reqUrl);
+                        const indexers = [];
+
+                        for (const i in response.data) {
+                                const entry = response.data[i];
+                                const baseUrlObj = entry.fields.find(isBaseUrl);
+                                const baseUrl = (!baseUrlObj) ? '' : baseUrlObj.value;
+                                const indexer = Object.assign({}, schema, {
+                                        title: entry.name,
+                                        protocol: entry.protocol,
+                                        url: baseUrl,
+                                        seeds: 1,
+                                        id: undefined,
+                                        appId: entry.id
+                                });
+
+                                if (!indexer.url)
+                                        indexer.url = '';
+
+                                let match = indexer.url.match(indexerRegex);
+                                if (match) {
+                                        indexer.id = match.groups.id;
+                                }
+
+                                indexers.push(indexer);
+                        }
+
+                        return indexers;
+                },
+		add: async (url, key, cats, seeds, indexer) => {
+                        const reqUrl = `${url}/api/v1/indexer?apikey=${key}`
+
+                        const body = {
+                                enableRss: true,
+                                enableAutomaticSearch: true,
+                                enableInteractiveSearch: true,
+                                supportsRss: true,
+                                supportsSearch: true,
+                                protocol: indexer.protocol,
+                                name: indexer.title,
+                                fields: [
+                                        { name: 'baseUrl', value: indexer.url },
+                                        { name: 'apiPath', value: '/api' },
+                                        { name: 'apiKey', value: indexer.key },
+                                        { name: 'categories', value: cats },
+                                        { name: 'earlyReleaseLimit' },
+                                        { name: 'additionalParameters' },
+                                        { name: 'minimumSeeders', value: seeds },
+                                        { name: 'seedCriteria.seedRatio' },
+                                        { name: 'seedCriteria.seedTime' },
+                                        { name: 'seedCriteria.discographySeedTime' }
+                                ],
+                                implementationName: 'Torznab',
+                                implementation: 'Torznab',
+                                configContract: 'TorznabSettings',
+                                tags: [] 
+                        }
+
+                        try {
+                                const resp = await axios.post(reqUrl, body);
+                                console.log(`[Readarr] Added ${indexer.id} successfully`);
+                        } catch (e) {
+                                console.error(`[Readarr] Failed to add ${indexer.id}: ${e.response.data[0] ? e.response.data[0].errorMessage : e}`);
+                                // console.error(e)
+                        }
+                },
+		shouldAdd: (url, key, cats, seeds, el) => el.categories.some(r => cats.includes(r)),
+                update: async (url, key, cats, seeds, current, indexer) => {
+                        const reqUrl = `${url}/api/v1/indexer/${current.appId}?apikey=${key}`
+
+                        const body = {
+                                enableRss: true,
+                                enableAutomaticSearch: true,
+                                enableInteractiveSearch: true,
+                                supportsRss: true,
+                                supportsSearch: true,
+                                protocol: indexer.protocol,
+                                name: indexer.title,
+                                id: current.appId,
+                                fields: [
+                                        { name: 'baseUrl', value: indexer.url },
+                                        { name: 'apiPath', value: '/api' },
+                                        { name: 'apiKey', value: indexer.key },
+                                        { name: 'categories', value: cats },
+                                        { name: 'earlyReleaseLimit' },
+                                        { name: 'additionalParameters' },
+                                        { name: 'minimumSeeders', value: seeds },
+                                        { name: 'seedCriteria.seedRatio' },
+                                        { name: 'seedCriteria.seedTime' },
+                                        { name: 'seedCriteria.discographySeedTime' }
+                                ],
+                                implementationName: 'Torznab',
+                                implementation: 'Torznab',
+                                configContract: 'TorznabSettings',
+                                tags: [],
+                        }
+
+                        try {
+                                const resp = await axios.put(reqUrl, body);
+                                console.log(`[Readarr] Updated ${indexer.id} successfully`);
+                        } catch (e) {
+                                console.error(`[Readarr] Failed to update ${indexer.id}: ${e.response.data[0] ? e.response.data[0].errorMessage : e}`);
+                        }
+                },
+		shouldUpdate: (url, key, cats, seeds, current, indexer) => {
+                        const mask = {categories: undefined, appId: undefined};
+
+                        const cr = Object.assign({}, current, mask);
+                        const ix = Object.assign({}, indexer, {...mask, seeds: seeds});
+
+                        return !deepCompare(cr, ix);
+                }
+
+        },
 }
