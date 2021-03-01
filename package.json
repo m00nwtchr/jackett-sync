@@ -3,6 +3,7 @@
   "description": "A quick & dirty extensible Jackett-to-Sonarr/Radarr/Lidarr/Whatever indexer synchronizer written in Node.js",
   "version": "1.0.7",
   "main": "index.js",
+  "public": true,
   "author": "Łukasz Mariański <lmarianski@protonmail.com>",
   "license": "GPL-3.0",
   "repository": {
