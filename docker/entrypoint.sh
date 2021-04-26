@@ -21,6 +21,9 @@ APIKEY="--apikey $APIKEY"
 [[ ! -z "$SONARR_CATS" ]] && \
   SONARR_CATS="--sonarrcats $SONARR_CATS"
 
+[[ ! -z "$SONARR_ANIME_CATS" ]] && \
+  SONARR_ANIME_CATS="--sonarranimecats $SONARR_ANIME_CATS"
+
 [[ ! -z "$RADARR_URL" ]] && \
   RADARR_URL="--radarrurl $RADARR_URL"
 
@@ -48,6 +51,6 @@ APIKEY="--apikey $APIKEY"
 cd /jackett-sync
 
 yarn start $SYNC $SEEDS $URL $APIKEY $ALTURL \
-	$SONARR_URL $SONARR_KEY $SONARR_CATS \
+	$SONARR_URL $SONARR_KEY $SONARR_CATS $SONARR_ANIME_CATS \
 	$RADARR_URL $RADARR_KEY $RADARR_CATS \
 	$LIDARR_URL $LIDARR_KEY $LIDARR_CATS $*

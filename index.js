@@ -7,7 +7,7 @@ const program = new Command();
 
 program
 	.option("-s, --sync", "Synchronize indexers and their options (instead of just adding them)")
-	// .option("-sd, --seeds <num>", "Minimum no. of seeds")
+// .option("-sd, --seeds <num>", "Minimum no. of seeds")
 // .option("-k, --apikey <key>", "Jackett API Key")
 // .option("-u, --url <url>", "Jackett URL", "http://127.0.0.1:9117")
 // .option("-au, --alturl <url>", "Alternative Jackett URI (for use when adding to sevices, default = --uri)")
@@ -22,20 +22,18 @@ for (const i in services) {
 
 		const defaults = service.defaults && service.defaults[j] ? service.defaults[j] : undefined;
 
-		const long = `--${param}`;
-		const paramStr = `${long} <${defaults ? typeof defaults : param}>`;
+		const long = "--" + param;
+		const paramStr = long + " <" + (defaults ? typeof defaults : param) + ">";
 
-		// console.log(defaults)
-
-		if (!program.options.some(el=>el.long===long)) {
+		if (!program.options.some(el => el.long === long)) {
 			program.option(paramStr, "", defaults);
 		}
 	}
 }
 
-if (process.argv.length == 2) {
+
+if (process.argv.length == 2)
 	process.argv.push("--help");
-}
 
 program.parse(process.argv);
 
@@ -89,7 +87,7 @@ async function sync(service, to, name) {
 
 		const promises = [];
 		const toAddIds = [];
-		
+
 		to.filter(el => !idList.includes(el.id))
 			.filter(el => service.shouldAdd(...params, el))
 			.forEach(el => {
@@ -99,17 +97,17 @@ async function sync(service, to, name) {
 
 		if (program.sync && service.shouldUpdate) {
 			const existingIndexers = await service.get(...params);
-			const existingIds = existingIndexers.map(el=>el.id);
+			const existingIds = existingIndexers.map(el => el.id);
 
 			// console.log(ex)
 
 			to
-			.filter(el => existingIds.includes(el.id))
-			.filter(el => service.shouldUpdate(...params, existingIndexers.find(e=>e.id===el.id), el))
-			.forEach(el => {
-				// toAddIds.push(el.id);
-				promises.push(service.update(...params, existingIndexers.find(e=>e.id===el.id), el));
-			});			
+				.filter(el => existingIds.includes(el.id))
+				.filter(el => service.shouldUpdate(...params, existingIndexers.find(e => e.id === el.id), el))
+				.forEach(el => {
+					// toAddIds.push(el.id);
+					promises.push(service.update(...params, existingIndexers.find(e => e.id === el.id), el));
+				});
 		}
 
 		if (toAddIds.length > 0) {
@@ -120,7 +118,7 @@ async function sync(service, to, name) {
 		await Promise.all(promises);
 	} catch (e) {
 		console.error(e);
-	}	
+	}
 }
 
 (async () => {
@@ -128,7 +126,7 @@ async function sync(service, to, name) {
 		const readyServices = findServices();
 
 		const sources = Object.values(readyServices).filter(el => el.source);
-		const indexers = (await Promise.all(sources.map(async el => await el.get(...serviceParams(el))))).reduce((result,i) => result.concat(i), []);
+		const indexers = (await Promise.all(sources.map(async el => await el.get(...serviceParams(el))))).reduce((result, i) => result.concat(i), []);
 
 		// console.log(indexers)
 
