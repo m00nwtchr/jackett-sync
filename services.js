@@ -196,11 +196,11 @@ module.exports = {
 		}
 	},
 	sonarr: {
-		params: ['sonarrurl', 'sonarrkey', 'sonarrcats', 'seeds'],
+		params: ['sonarrurl', 'sonarrkey', 'sonarrcats', 'sonarranimecats', 'seeds'],
 		required: ['sonarrurl', 'sonarrkey'],
-		defaults: ['', '', '5000,5030,5040', 1],
+		defaults: ['', '', '5000,5030,5040', '5070,100028,140679', 1],
 		process: [undefined, undefined, (val) => val.split(',').map(el => parseInt(el)), e=>parseInt(e)],
-		get: async (url, key, cats) => {
+		get: async (url, key, cats, animeCats) => {
 			const reqUrl = `${url}/api/v3/indexer?apikey=${key}`;
 
 			const response = await axios.get(reqUrl);
@@ -228,7 +228,7 @@ module.exports = {
 
 			return indexers;
 		},
-		add: async (url, key, cats, seeds, indexer) => {
+		add: async (url, key, cats, animeCats, seeds, indexer) => {
 			const reqUrl = `${url}/api/v3/indexer?apikey=${key}`
 
 			const body = {
@@ -244,7 +244,7 @@ module.exports = {
 					{ name: 'apiPath', value: '/api' },
 					{ name: 'apiKey', value: indexer.key },
 					{ name: 'categories', value: cats },
-					{ name: 'animeCategories', value: [] },
+					{ name: 'animeCategories', value: animeCats },
 					{ name: 'additionalParameters' },
 					{ name: 'minimumSeeders', value: seeds },
 					{ name: 'seedCriteria.seedRatio' },
@@ -264,8 +264,8 @@ module.exports = {
 				console.error(`[Sonarr] Failed to add ${indexer.id}: ${e.response.data[0] ? e.response.data[0].errorMessage : e}`);
 			}
 		},
-		shouldAdd: (url, key, cats, seeds, el) => el.categories.some(r => cats.includes(r)),
-		update: async (url, key, cats, seeds, current, indexer) => {
+		shouldAdd: (url, key, cats, animeCats, seeds, el) => el.categories.some(r => cats.includes(r)),
+		update: async (url, key, cats, animeCats, seeds, current, indexer) => {
 			const reqUrl = `${url}/api/v3/indexer/${current.appId}?apikey=${key}`
 
 			const body = {
@@ -282,7 +282,7 @@ module.exports = {
 					{ name: 'apiPath', value: '/api' },
 					{ name: 'apiKey', value: indexer.key },
 					{ name: 'categories', value: cats },
-					{ name: 'animeCategories', value: [] },
+					{ name: 'animeCategories', value: animeCats },
 					{ name: 'additionalParameters' },
 					{ name: 'minimumSeeders', value: seeds },
 					{ name: 'seedCriteria.seedRatio' },
@@ -302,7 +302,7 @@ module.exports = {
 				console.error(`[Sonarr] Failed to update ${indexer.id}: ${e.response.data[0] ? e.response.data[0].errorMessage : e}`);
 			}
 		},
-		shouldUpdate: (url, key, cats, seeds, current, indexer) => {
+		shouldUpdate: (url, key, cats, animeCats, seeds, current, indexer) => {
 
 			const mask = {categories: undefined, appId: undefined};
 
@@ -366,7 +366,6 @@ module.exports = {
 					{ name: "multiLanguages", value: [] },
                                         { name: 'apiKey', value: indexer.key },
                                         { name: 'categories', value: cats },
-                                        { name: 'animeCategories', value: [] },
                                         { name: 'additionalParameters' },
                                         { name: 'minimumSeeders', value: seeds },
                                         { name: 'seedCriteria.seedRatio' },
@@ -408,7 +407,6 @@ module.exports = {
                                         { name: "multiLanguages", value: [] },
                                         { name: 'apiKey', value: indexer.key },
                                         { name: 'categories', value: cats },
-                                        { name: 'animeCategories', value: [] },
                                         { name: 'additionalParameters' },
                                         { name: 'minimumSeeders', value: seeds },
                                         { name: 'seedCriteria.seedRatio' },
