@@ -255,7 +255,7 @@ module.exports = {
 				implementationName: 'Torznab',
 				implementation: 'Torznab',
 				configContract: 'TorznabSettings',
-				tags: []
+				tags: [],
 				priority: 25,
 			}
 
