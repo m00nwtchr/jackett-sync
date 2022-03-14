@@ -255,6 +255,7 @@ module.exports = {
 				implementation: 'Torznab',
 				configContract: 'TorznabSettings',
 				tags: []
+				priority: 25,
 			}
 
 			try {
@@ -293,6 +294,7 @@ module.exports = {
 				implementation: 'Torznab',
 				configContract: 'TorznabSettings',
 				tags: [],
+				priority: 25,
 			}
 
 			try {
