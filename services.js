@@ -245,6 +245,7 @@ module.exports = {
 					{ name: 'apiKey', value: indexer.key },
 					{ name: 'categories', value: cats },
 					{ name: 'animeCategories', value: animeCats },
+					{ name: 'animeStandardFormatSearch', value:false},
 					{ name: 'additionalParameters' },
 					{ name: 'minimumSeeders', value: seeds },
 					{ name: 'seedCriteria.seedRatio' },
@@ -254,7 +255,8 @@ module.exports = {
 				implementationName: 'Torznab',
 				implementation: 'Torznab',
 				configContract: 'TorznabSettings',
-				tags: []
+				tags: [],
+				priority: 25,
 			}
 
 			try {
@@ -283,6 +285,7 @@ module.exports = {
 					{ name: 'apiKey', value: indexer.key },
 					{ name: 'categories', value: cats },
 					{ name: 'animeCategories', value: animeCats },
+					{ name: 'animeStandardFormatSearch', value:false},
 					{ name: 'additionalParameters' },
 					{ name: 'minimumSeeders', value: seeds },
 					{ name: 'seedCriteria.seedRatio' },
@@ -293,6 +296,7 @@ module.exports = {
 				implementation: 'Torznab',
 				configContract: 'TorznabSettings',
 				tags: [],
+				priority: 25,
 			}
 
 			try {
