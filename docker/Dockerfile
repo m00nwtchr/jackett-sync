@@ -1,8 +1,8 @@
 FROM node:12-alpine
 
 COPY . /jackett-sync
-COPY ./docker/entrypoint.sh /
-COPY ./docker/cron /etc/cron.d/
+COPY ./entrypoint.sh /
+COPY ./cron /etc/cron.d/
 
 # RUN apk add cron
 
